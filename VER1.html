@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚚 Career Truck Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 50%, #FFE5B4 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #scene {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Clouds */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.8;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+        }
+
+        .cloud1 {
+            width: 100px;
+            height: 40px;
+            top: 10%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+
+        .cloud1::before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 15px;
+        }
+
+        .cloud1::after {
+            width: 60px;
+            height: 40px;
+            top: -15px;
+            right: 15px;
+        }
+
+        .cloud2 {
+            width: 120px;
+            height: 45px;
+            top: 25%;
+            right: 15%;
+            animation-delay: 5s;
+        }
+
+        .cloud2::before {
+            width: 55px;
+            height: 55px;
+            top: -28px;
+            left: 20px;
+        }
+
+        .cloud2::after {
+            width: 65px;
+            height: 45px;
+            top: -18px;
+            right: 20px;
+        }
+
+        .cloud3 {
+            width: 90px;
+            height: 35px;
+            top: 15%;
+            right: 40%;
+            animation-delay: 10s;
+        }
+
+        .cloud3::before {
+            width: 45px;
+            height: 45px;
+            top: -22px;
+            left: 12px;
+        }
+
+        .cloud3::after {
+            width: 50px;
+            height: 35px;
+            top: -12px;
+            right: 12px;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Sun */
+        .sun {
+            position: absolute;
+            top: 8%;
+            right: 10%;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+            animation: rotate 20s linear infinite;
+        }
+
+        .sun-ray {
+            position: absolute;
+            width: 4px;
+            height: 20px;
+            background: #FFD700;
+            border-radius: 2px;
+            top: 50%;
+            left: 50%;
+            transform-origin: 2px 40px;
+        }
+
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Road container */
+        #road-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 45%;
+        }
+
+        /* Ground */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to bottom, #8BC34A 0%, #689F38 100%);
+        }
+
+        .grass {
+            position: absolute;
+            width: 100%;
+            height: 30px;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                #7CB342 10px,
+                #7CB342 12px
+            );
+            bottom: 60%;
+            opacity: 0.6;
+        }
+
+        /* Road */
+        .road {
+            position: absolute;
+            bottom: 25%;
+            width: 100%;
+            height: 35%;
+            background: #404040;
+            border-top: 4px solid #2a2a2a;
+            border-bottom: 4px solid #2a2a2a;
+            box-shadow: 
+                inset 0 10px 20px rgba(0, 0, 0, 0.3),
+                0 -4px 10px rgba(0, 0, 0, 0.2),
+                0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .road-line {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 200%;
+            height: 6px;
+            background: repeating-linear-gradient(
+                90deg,
+                #FFD700 0px,
+                #FFD700 60px,
+                transparent 60px,
+                transparent 100px
+            );
+        }
+
+        /* Truck - fixed position */
+        #truck {
+            position: fixed;
+            left: 25%;
+            bottom: 30%;
+            width: 200px;
+            height: 140px;
+            z-index: 100;
+            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.4));
+        }
+
+        .truck-body {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.2s ease;
+        }
+
+        /* Truck cargo */
+        .truck-cargo {
+            position: absolute;
+            left: 0;
+            top: 10%;
+            width: 65%;
+            height: 60%;
+            background: linear-gradient(135deg, #FF6B9D 0%, #C44569 100%);
+            border-radius: 8px 8px 0 0;
+            border: 4px solid #A53860;
+            box-shadow: 
+                inset 0 4px 15px rgba(255, 255, 255, 0.3),
+                0 4px 20px rgba(196, 69, 105, 0.4);
+        }
+
+        .cargo-line {
+            position: absolute;
+            width: 90%;
+            height: 3px;
+            left: 5%;
+            top: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .cargo-door {
+            position: absolute;
+            right: 5%;
+            top: 15%;
+            width: 35%;
+            height: 70%;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 4px;
+        }
+
+        /* Truck cabin */
+        .truck-cabin {
+            position: absolute;
+            right: 0;
+            top: 20%;
+            width: 40%;
+            height: 55%;
+            background: linear-gradient(135deg, #4FC3F7 0%, #0277BD 100%);
+            border-radius: 8px 8px 0 0;
+            border: 4px solid #01579B;
+            box-shadow: 
+                inset 0 4px 15px rgba(255, 255, 255, 0.3),
+                0 4px 20px rgba(79, 195, 247, 0.4);
+        }
+
+        .cabin-window {
+            position: absolute;
+            width: 80%;
+            height: 50%;
+            left: 10%;
+            top: 15%;
+            background: linear-gradient(135deg, 
+                rgba(173, 216, 230, 0.7),
+                rgba(173, 216, 230, 0.3)
+            );
+            border-radius: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .cabin-detail {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            top: 70%;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .truck-nose {
+            position: absolute;
+            right: -10px;
+            top: 35%;
+            width: 15px;
+            height: 40%;
+            background: linear-gradient(to right, #0277BD, #4FC3F7);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .headlight {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: radial-gradient(circle, #FFF59D 0%, #FBC02D 100%);
+            border-radius: 50%;
+            box-shadow: 
+                0 0 10px #FFF59D,
+                0 0 20px rgba(255, 245, 157, 0.5);
+        }
+
+        /* Wheels */
+        .wheel {
+            position: absolute;
+            bottom: -25px;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle,
+                #2a2a2a 0%,
+                #2a2a2a 35%,
+                #666 40%,
+                #999 45%,
+                #666 50%,
+                #444 100%
+            );
+            border-radius: 50%;
+            border: 5px solid #1a1a1a;
+            box-shadow: 
+                inset 0 0 10px rgba(0, 0, 0, 0.8),
+                0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .wheel-inner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #666;
+            border-radius: 50%;
+            border: 2px solid #888;
+        }
+
+        .wheel-spoke {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #888;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .wheel-spoke:nth-child(2) {
+            transform: translateY(-50%) rotate(60deg);
+        }
+
+        .wheel-spoke:nth-child(3) {
+            transform: translateY(-50%) rotate(120deg);
+        }
+
+        .wheel.front { right: 25px; }
+        .wheel.back { left: 45px; }
+
+        .wheel.spinning {
+            animation: wheel-roll 0.3s linear infinite;
+        }
+
+        @keyframes wheel-roll {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Year markers on road */
+        #timeline-track {
+            position: absolute;
+            bottom: 25%;
+            left: 0;
+            height: 35%;
+            width: 100%;
+        }
+
+        .year-marker {
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 15%;
+            width: 200px;
+        }
+
+        .year-sign {
+            position: relative;
+            background: #8B4513;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border: 4px solid #654321;
+            transform: translateY(10px);
+            opacity: 0.6;
+            transition: all 0.4s ease;
+        }
+
+        .year-sign::before {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 30px;
+            background: #654321;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .year-marker.active .year-sign {
+            transform: translateY(0) scale(1.15);
+            opacity: 1;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .year-number {
+            font-size: 32px;
+            font-weight: 900;
+            color: #FFF;
+            text-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.5),
+                0 0 10px currentColor;
+            letter-spacing: 2px;
+        }
+
+        /* Info popup */
+        #info-popup {
+            position: fixed;
+            left: 25%;
+            bottom: calc(30% + 160px);
+            transform: translateX(-50%) translateY(20px) scale(0.9);
+            width: 350px;
+            padding: 24px 28px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.2),
+                0 0 0 6px currentColor;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 200;
+        }
+
+        #info-popup.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+        }
+
+        .popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .popup-icon {
+            font-size: 36px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .popup-year {
+            font-size: 28px;
+            font-weight: 900;
+            color: currentColor;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .popup-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .popup-description {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #666;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .popup-tail {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid white;
+        }
+
+        .popup-tail::before {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 20px solid currentColor;
+        }
+
+        /* Colors */
+        .color-blue { color: #5390ff; }
+        .color-orange { color: #ff8039; }
+        .color-purple { color: #b65fff; }
+        .color-green { color: #a2ffab; }
+
+        /* Controls */
+        #controls {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            display: flex;
+            gap: 15px;
+            z-index: 150;
+        }
+
+        .control-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 5px solid #FFF;
+            background: linear-gradient(135deg, #FF6B9D 0%, #C44569 100%);
+            color: white;
+            font-size: 36px;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 8px 20px rgba(196, 69, 105, 0.4),
+                inset 0 4px 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .control-btn:hover {
+            transform: scale(1.15) rotate(-5deg);
+            box-shadow: 
+                0 12px 30px rgba(196, 69, 105, 0.6),
+                inset 0 4px 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .control-btn:active {
+            transform: scale(1.0);
+        }
+
+        .control-btn.forward {
+            background: linear-gradient(135deg, #4FC3F7 0%, #0277BD 100%);
+            box-shadow: 
+                0 8px 20px rgba(2, 119, 189, 0.4),
+                inset 0 4px 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .control-btn.forward:hover {
+            box-shadow: 
+                0 12px 30px rgba(2, 119, 189, 0.6),
+                inset 0 4px 10px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Progress indicator */
+        #progress {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 150;
+        }
+
+        .progress-emoji {
+            font-size: 24px;
+        }
+
+        .progress-text {
+            font-size: 16px;
+            font-weight: 800;
+            color: #333;
+        }
+
+        /* Trees */
+        .tree {
+            position: absolute;
+            bottom: 60%;
+            width: 60px;
+            animation: tree-sway 4s ease-in-out infinite;
+        }
+
+        @keyframes tree-sway {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(2deg); }
+        }
+
+        .tree-trunk {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 40px;
+            background: #8B4513;
+            border-radius: 6px;
+        }
+
+        .tree-leaves {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: #4CAF50;
+            border-radius: 50%;
+            box-shadow: 
+                -15px -10px 0 #66BB6A,
+                15px -10px 0 #66BB6A,
+                0 -20px 0 #81C784;
+        }
+    </style>
+</head>
+<body>
+    <div id="scene">
+        <!-- Sky elements -->
+        <div class="sun">
+            <div class="sun-ray" style="transform: rotate(0deg) translateX(-50%)"></div>
+            <div class="sun-ray" style="transform: rotate(45deg) translateX(-50%)"></div>
+            <div class="sun-ray" style="transform: rotate(90deg) translateX(-50%)"></div>
+            <div class="sun-ray" style="transform: rotate(135deg) translateX(-50%)"></div>
+            <div class="sun-ray" style="transform: rotate(180deg) translateX(-50%)"></div>
+            <div class="sun-ray" style="transform: rotate(225deg) translateX(-50%)"></div>
+            <div class="sun-ray" style="transform: rotate(270deg) translateX(-50%)"></div>
+            <div class="sun-ray" style="transform: rotate(315deg) translateX(-50%)"></div>
+        </div>
+
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+        <div class="cloud cloud3"></div>
+
+        <!-- Trees (will be generated) -->
+        <div id="trees"></div>
+
+        <!-- Road -->
+        <div id="road-container">
+            <div class="ground">
+                <div class="grass"></div>
+            </div>
+            <div class="road">
+                <div class="road-line" id="road-line"></div>
+            </div>
+            <div id="timeline-track"></div>
+        </div>
+
+        <!-- Truck -->
+        <div id="truck">
+            <div class="truck-body">
+                <div class="truck-cargo">
+                    <div class="cargo-line"></div>
+                    <div class="cargo-door"></div>
+                </div>
+                <div class="truck-cabin">
+                    <div class="cabin-window"></div>
+                    <div class="cabin-detail"></div>
+                </div>
+                <div class="truck-nose">
+                    <div class="headlight"></div>
+                </div>
+                <div class="wheel front">
+                    <div class="wheel-spoke"></div>
+                    <div class="wheel-spoke"></div>
+                    <div class="wheel-spoke"></div>
+                    <div class="wheel-inner"></div>
+                </div>
+                <div class="wheel back">
+                    <div class="wheel-spoke"></div>
+                    <div class="wheel-spoke"></div>
+                    <div class="wheel-spoke"></div>
+                    <div class="wheel-inner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info popup -->
+        <div id="info-popup">
+            <div class="popup-header">
+                <div class="popup-icon"></div>
+                <div class="popup-year"></div>
+            </div>
+            <div class="popup-title"></div>
+            <div class="popup-description"></div>
+            <div class="popup-tail"></div>
+        </div>
+
+        <!-- Progress -->
+        <div id="progress">
+            <div class="progress-emoji">🚚</div>
+            <div class="progress-text">2008년 출발!</div>
+        </div>
+
+        <!-- Controls -->
+        <div id="controls">
+            <button class="control-btn backward">←</button>
+            <button class="control-btn forward">→</button>
+        </div>
+    </div>
+
+    <script>
+        // Timeline data
+        const timeline = [
+            {
+                year: 2008,
+                title: 'First Web Project',
+                description: '웹 개발의 첫 걸음을 시작했어요! HTML, CSS, JavaScript로 첫 웹사이트를 만들었답니다. 🎉',
+                color: 'blue',
+                emoji: '🌱'
+            },
+            {
+                year: 2010,
+                title: 'Freelance Developer',
+                description: '프리랜서로 독립! 여러 클라이언트와 함께 다양한 프로젝트를 진행했어요. 💪',
+                color: 'orange',
+                emoji: '🎯'
+            },
+            {
+                year: 2013,
+                title: 'Startup Co-Founder',
+                description: '스타트업을 공동 창업했어요! 제품 개발과 팀 빌딩의 즐거움을 경험했답니다. 🚀',
+                color: 'purple',
+                emoji: '🚀'
+            },
+            {
+                year: 2016,
+                title: 'Senior Engineer',
+                description: '시니어 엔지니어로 성장! 대규모 서비스 아키텍처를 설계하고 팀을 이끌었어요. 🏗️',
+                color: 'green',
+                emoji: '⭐'
+            },
+            {
+                year: 2019,
+                title: 'Tech Lead',
+                description: '테크 리드로서 기술 전략을 수립하고 주요 의사결정을 주도했어요. 🎓',
+                color: 'blue',
+                emoji: '🎓'
+            },
+            {
+                year: 2022,
+                title: 'Engineering Manager',
+                description: '엔지니어링 매니저가 되어 조직을 관리하며 개발 문화를 만들어갔어요. 🌟',
+                color: 'orange',
+                emoji: '👑'
+            },
+            {
+                year: 2025,
+                title: 'Director of Engineering',
+                description: '이제 디렉터로서 전사 기술 비전을 제시하고 혁신을 이끌고 있어요! 🎊',
+                color: 'purple',
+                emoji: '🏆'
+            }
+        ];
+
+        // State
+        const state = {
+            position: 0,
+            targetPosition: 0,
+            currentIndex: 0
+        };
+
+        const markerDistance = 800; // Distance between years
+        const totalDistance = (timeline.length - 1) * markerDistance;
+
+        // Elements
+        const roadLine = document.getElementById('road-line');
+        const timelineTrack = document.getElementById('timeline-track');
+        const truck = document.getElementById('truck');
+        const truckBody = truck.querySelector('.truck-body');
+        const wheels = document.querySelectorAll('.wheel');
+        const infoPopup = document.getElementById('info-popup');
+        const progressText = document.querySelector('.progress-text');
+        const btnForward = document.querySelector('.control-btn.forward');
+        const btnBackward = document.querySelector('.control-btn.backward');
+
+        // Create trees
+        const treesContainer = document.getElementById('trees');
+        for (let i = 0; i < 15; i++) {
+            const tree = document.createElement('div');
+            tree.className = 'tree';
+            tree.style.left = (i * 15) + '%';
+            tree.innerHTML = `
+                <div class="tree-trunk"></div>
+                <div class="tree-leaves"></div>
+            `;
+            treesContainer.appendChild(tree);
+        }
+
+        // Create year markers
+        const yearMarkers = [];
+        timeline.forEach((item, index) => {
+            const marker = document.createElement('div');
+            marker.className = 'year-marker';
+            marker.innerHTML = `
+                <div class="year-sign color-${item.color}">
+                    <div class="year-number">${item.year}</div>
+                </div>
+            `;
+            marker.dataset.index = index;
+            timelineTrack.appendChild(marker);
+            yearMarkers.push(marker);
+        });
+
+        // Update positions
+        function updatePositions() {
+            roadLine.style.transform = `translateX(${-state.position}px)`;
+            
+            yearMarkers.forEach((marker, index) => {
+                const markerPos = index * markerDistance - state.position;
+                marker.style.left = `${markerPos}px`;
+
+                // Check if truck is over this marker
+                const truckX = window.innerWidth * 0.25;
+                const distance = Math.abs(markerPos - truckX);
+
+                if (distance < 100) {
+                    marker.classList.add('active');
+                    if (state.currentIndex !== index) {
+                        state.currentIndex = index;
+                        showInfo(index);
+                    }
+                } else {
+                    marker.classList.remove('active');
+                }
+            });
+
+            // Update trees
+            const trees = document.querySelectorAll('.tree');
+            trees.forEach((tree, i) => {
+                const treePos = (i * window.innerWidth * 0.15) - state.position * 0.3;
+                tree.style.left = `${treePos}px`;
+            });
+        }
+
+        // Show info popup
+        function showInfo(index) {
+            const item = timeline[index];
+            const popup = infoPopup;
+
+            popup.className = `color-${item.color}`;
+            popup.querySelector('.popup-icon').textContent = item.emoji;
+            popup.querySelector('.popup-year').textContent = item.year;
+            popup.querySelector('.popup-title').textContent = item.title;
+            popup.querySelector('.popup-description').textContent = item.description;
+
+            progressText.textContent = `${item.year}년 - ${item.title}`;
+
+            popup.classList.add('show');
+        }
+
+        // Controls
+        btnForward.addEventListener('click', moveForward);
+        btnBackward.addEventListener('click', moveBackward);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                e.preventDefault();
+                moveForward();
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                e.preventDefault();
+                moveBackward();
+            }
+        });
+
+        function moveForward() {
+            state.targetPosition = Math.min(state.targetPosition + markerDistance, totalDistance);
+        }
+
+        function moveBackward() {
+            state.targetPosition = Math.max(state.targetPosition - markerDistance, 0);
+        }
+
+        // Animation loop
+        function animate() {
+            const diff = state.targetPosition - state.position;
+            
+            if (Math.abs(diff) > 1) {
+                state.position += diff * 0.08;
+                wheels.forEach(w => w.classList.add('spinning'));
+            } else {
+                state.position = state.targetPosition;
+                wheels.forEach(w => w.classList.remove('spinning'));
+            }
+
+            updatePositions();
+
+            // Truck bounce
+            const bounce = Math.abs(diff) > 1 ? Math.sin(Date.now() * 0.01) * 2 : 0;
+            const tilt = Math.min(Math.max(diff * 0.005, -2), 2);
+            truckBody.style.transform = `translateY(${bounce}px) rotateZ(${tilt}deg)`;
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start
+        animate();
+
+        // Initial info
+        setTimeout(() => {
+            showInfo(0);
+        }, 500);
+
+        // Auto intro
+        setTimeout(() => {
+            let step = 0;
+            const intro = setInterval(() => {
+                if (step < 2) {
+                    moveForward();
+                    step++;
+                } else {
+                    clearInterval(intro);
+                }
+            }, 300);
+        }, 1500);
+    </script>
+</body>
+</html>
