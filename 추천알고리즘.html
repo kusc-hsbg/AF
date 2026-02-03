@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>클래스 추천 퀴즈</title>
+  <style>
+    :root{
+      --bg:#fff7fb;
+      --bg2:#f2fbff;
+      --line:#ffd3e6;
+      --text:#2b2b2b;
+      --muted:#6b6b6b;
+      --pink:#ff7bb5;
+      --mint:#33d6c8;
+      --lav:#9d8bff;
+      --shadow: 0 18px 35px rgba(255, 123, 181, .18);
+      --r: 20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(900px 600px at 15% 15%, #ffd1e8, transparent 55%),
+        radial-gradient(800px 600px at 85% 20%, #c9f3ff, transparent 55%),
+        radial-gradient(900px 700px at 55% 95%, #d7fff5, transparent 55%),
+        linear-gradient(180deg,var(--bg),var(--bg2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+    }
+
+    /* fixed stage size */
+    .stage{ width:700px; height:620px; display:flex; }
+    @media (max-width: 720px){ .stage{width:min(700px,100%);} }
+
+    .panel{
+      width:100%;
+      height:100%;
+      border:2px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.65));
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .panel:before{
+      content:"";
+      position:absolute;
+      inset:-40px -30px auto auto;
+      width:360px;height:160px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,209,232,.85), rgba(255,209,232,0));
+      transform: rotate(10deg);
+      pointer-events:none;
+    }
+    .panel:after{
+      content:"";
+      position:absolute;
+      inset:auto auto -50px -40px;
+      width:190px;height:190px;
+      background: radial-gradient(circle at 40% 40%, rgba(201,243,255,.9), rgba(201,243,255,0));
+      transform: rotate(-12deg);
+      pointer-events:none;
+    }
+
+    .content{
+      padding:16px;
+      position:relative;
+      z-index:1;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .qbox{
+      padding:14px;
+      border:2px solid #ffe2ef;
+      border-radius:18px;
+      background: rgba(255,255,255,.62);
+    }
+
+    .qmeta{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .progress{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      border:2px solid #ffd3e6;
+      background: transparent;
+    }
+    .dot.on{background: linear-gradient(135deg,var(--pink),var(--lav)); border-color:transparent;}
+    .dot.done{background:#ffd3e6;border-color:transparent;}
+    .qstep{
+      font-size:12px;
+      color:#ff5aa7;
+      font-weight:900;
+    }
+
+    .qtitle{font-size:20px;font-weight:1000;margin:0 0 8px;}
+    .qdesc{margin:0 0 12px;color:#5c5c5c;font-size:13px;line-height:1.5;}
+
+    .options{
+      display:grid;
+      gap:10px;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+    }
+    @media (max-width: 520px){ .options{grid-template-columns:1fr;} }
+
+    /* ✅ 선택 버튼 글자 가운데 정렬 */
+    .btn{
+      border:2px solid #ffe2ef;
+      border-radius:18px;
+      background: rgba(255,255,255,.7);
+      color:var(--text);
+      padding:14px 14px;
+      cursor:pointer;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+      min-height:72px;
+      position:relative;
+      overflow:hidden;
+
+      /* center */
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+    }
+    .btn:before{
+      content:"";
+      position:absolute;
+      inset:-40% -40% auto auto;
+      width:120px;height:120px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,209,232,.8), rgba(255,209,232,0));
+      transform: rotate(18deg);
+      opacity:.75;
+      pointer-events:none;
+    }
+    .btn:hover{
+      transform: translateY(-2px);
+      border-color:#ffc0dd;
+      box-shadow: 0 14px 22px rgba(255,123,181,.16);
+    }
+    .btn:active{transform: translateY(0px) scale(.99);}
+    .b1{font-weight:1000;font-size:14px;margin-bottom:4px;}
+    .b2{font-size:12px;color:#6a6a6a;line-height:1.35;}
+    .btn.primary{
+      border-color: transparent;
+      background: linear-gradient(135deg, rgba(255,123,181,.18), rgba(157,139,255,.18));
+    }
+
+    .footerbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:10px;
+    }
+    .ghost{
+      border:2px solid #ffe2ef;
+      background: rgba(255,255,255,.5);
+      color:#ff5aa7;
+      padding:9px 12px;
+      border-radius:16px;
+      cursor:pointer;
+      font-weight:1000;
+      font-size:12px;
+    }
+    .ghost:hover{border-color:#ffc0dd;}
+    .ghost:disabled{opacity:.5; cursor:not-allowed;}
+
+    /* RESULT: ROADMAP ONLY, VERTICAL BIG */
+    .roadmapWrap{
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .roadmap{
+      width:100%;
+      height:100%;
+      border:3px dashed #ffd3e6;
+      border-radius:22px;
+      padding:18px;
+      background: linear-gradient(180deg, rgba(255,209,232,.28), rgba(201,243,255,.25));
+      box-shadow:
+        0 0 0 10px rgba(255,123,181,.10),
+        0 22px 40px rgba(157,139,255,.18);
+      position:relative;
+      overflow:auto;
+      animation: pop 420ms ease-out;
+    }
+    @keyframes pop{ 0%{transform: scale(.985);} 100%{transform: scale(1);} }
+
+    .roadCol{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:center;
+      justify-content:flex-start;
+      padding-bottom:14px;
+    }
+    .node{
+      width:min(560px, 100%);
+      padding:18px 16px;
+      border-radius:22px;
+      border:2px solid #ffe2ef;
+      background: rgba(255,255,255,.82);
+      font-size:18px;
+      font-weight:1000;
+      text-align:center;
+      line-height:1.35;
+    }
+    .node.first{
+      border-color: transparent;
+      background: linear-gradient(135deg, rgba(255,123,181,.42), rgba(51,214,200,.24));
+      box-shadow: 0 16px 30px rgba(255,123,181,.18);
+    }
+    .node.selected{
+      outline: 4px solid rgba(157,139,255,.22);
+      outline-offset: 2px;
+    }
+    .down{
+      font-weight:1000;
+      color:#ff5aa7;
+      font-size:22px;
+      line-height:1;
+    }
+    .hint{
+      margin-top:10px;
+      text-align:center;
+      font-size:12px;
+      color:#6b6b6b;
+      font-weight:900;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <section class="panel">
+      <!-- ✅ 헤더 제거 완료 -->
+
+      <div class="content">
+        <!-- 질문 영역 -->
+        <div class="qbox" id="qbox">
+          <div class="qmeta">
+            <div class="progress" id="progress"></div>
+            <div class="qstep" id="qstep"></div>
+          </div>
+          <h2 class="qtitle" id="qtitle"></h2>
+          <p class="qdesc" id="qdesc"></p>
+          <div class="options" id="options"></div>
+          <div class="footerbar">
+            <button class="ghost" id="backBtn" type="button">이전</button>
+            <span></span>
+          </div>
+        </div>
+
+        <!-- 결과: 로드맵만 크게(세로) -->
+        <div class="roadmapWrap" id="roadmapWrap" style="display:none;">
+          <div class="roadmap" id="roadmap">
+            <div class="roadCol" id="roadCol"></div>
+            <div class="hint" id="hint"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+  const state = {
+    ageGroup: null,
+    device: null,
+    experience: null,
+    interest: null,
+    tabletCourse: null,
+    videoTool: null,
+    codeGoal: null,
+    messageGoal: null,
+    webGoal: null
+  };
+
+  const steps = ['나이','기기','경험','선택','결과'];
+
+  const E = '디지털 드로잉 베이직';
+  const F = '디지털 드로잉 프로';
+  const G = '디지털 드로잉 북';
+  const H = '풍경 디지털 드로잉';
+  const I = '애니메이션 베이직';
+  const J = '애니메이션 프로';
+
+  const X = '스크래치 베이직';
+  const Y = '스크래치 프로';
+  const Z = '플레이북';
+
+  const H1 = 'HTML 비기너';
+  const H2 = 'HTML 베이직';
+  const H3 = 'HTML 프로';
+  const J4 = '자바스크립트 베이직';
+  const J5 = '자바스크립트 프로';
+
+  const C1 = '파운데이션';
+  const C2 = '디플로마';
+  const C3 = '에디터';
+
+  const N = '비디오 베이직';
+  const O = '비디오 프로';
+  const P = '모션그래픽';
+  const Q = '북 애니메이셔';
+  const R = '모션폴리오';
+
+  const flow = {
+    q_age:{
+      stepIndex:0,
+      title:'나이를 선택해 주세요',
+      options:[
+        {label:'11세 미만',next:'q_device', set:()=>state.ageGroup='u11'},
+        {label:'성인',next:'q_device', set:()=>state.ageGroup='adult'}
+      ]
+    },
+    q_device:{
+      stepIndex:1,
+      title:'사용하는 기기를 선택해 주세요',
+      options:[
+        {label:'PC',next:'q_exp', set:()=>{state.device='pc'; resetTabletOnly();}},
+        {label:'아이패드/갤럭시패드',next:'q_exp', set:()=>{state.device='tablet'; resetPcOnly();}}
+      ]
+    },
+    q_exp:{
+      stepIndex:2,
+      title:'관련 경험이 있나요?',
+      options:[
+        {label:'경험 없음',next:'__AUTO__', set:()=>state.experience='none'},
+        {label:'경험 있음',next:'__AUTO__', set:()=>state.experience='some'}
+      ]
+    },
+    q_pc_interest:{
+      stepIndex:3,
+      title:'관심 분야를 선택해 주세요',
+      options:[
+        {label:'그림책/어피니티 디자인',sub:'책·디자인 기반',next:'q_result', set:()=>state.interest='book_design'},
+        {label:'캐릭터 / IP',sub:'굿즈·이모티콘',next:'q_result', set:()=>state.interest='character_ip'},
+        {label:'영상 / 모션',sub:'편집·모션그래픽',next:'q_video_tool', set:()=>state.interest='video_motion'},
+        {label:'코드 디자인',sub:'스크래치·웹코드',next:'q_code_goal', set:()=>state.interest='code_design'},
+        {label:'메시지 디자인',sub:'스토리·에세이·출판',next:'q_message_goal', set:()=>state.interest='message_design'},
+        {label:'웹 프로듀서',sub:'웹/마케팅/브랜딩',next:'q_web_goal', set:()=>state.interest='web_producer'},
+      ]
+    },
+    q_video_tool:{
+      stepIndex:3,
+      title:'영상/모션은 어떤 툴을 사용하나요?',
+      options:[
+        {label:'캡컷',sub:'비디오 베이직 → 비디오 프로',next:'q_result', set:()=>state.videoTool='capcut'},
+        {label:'애프터이펙트',sub:'모션그래픽/북 애니메이셔/모션폴리오',next:'q_result', set:()=>state.videoTool='aftereffects'}
+      ]
+    },
+    q_code_goal:{
+      stepIndex:3,
+      title:'코드 디자인 목표를 선택해 주세요',
+      options:[
+        {label:'스크래치 중심',next:'q_result', set:()=>state.codeGoal='scratch'},
+        {label:'웹(HTML/JS) 중심',next:'q_result', set:()=>state.codeGoal='web'}
+      ]
+    },
+    q_message_goal:{
+      stepIndex:3,
+      title:'메시지 디자인에서 원하는 목표는?',
+      options:[
+        {label:'스토리 크래프팅',sub:'이야기 설계',next:'q_result', set:()=>state.messageGoal='story'},
+        {label:'아트 에세이',sub:'에세이/감정',next:'q_result', set:()=>state.messageGoal='essay'},
+        {label:'아이덴티티 북',sub:'브랜드/철학',next:'q_result', set:()=>state.messageGoal='identity'},
+        {label:'퍼블리싱',sub:'출판 실무',next:'q_result', set:()=>state.messageGoal='publishing'}
+      ]
+    },
+    q_web_goal:{
+      stepIndex:3,
+      title:'웹 프로듀서 목표를 선택해 주세요',
+      options:[
+        {label:'웹 프로 마스터',sub:'전문가 과정',next:'q_result', set:()=>state.webGoal='pro_master'},
+        {label:'웹 프로필',sub:'개인/포트폴리오',next:'q_result', set:()=>state.webGoal='profile'},
+        {label:'마케팅 매니지먼트',sub:'운영/마케팅',next:'q_result', set:()=>state.webGoal='marketing'},
+        {label:'1:1 브랜딩 코스',sub:'브랜딩 집중',next:'q_result', set:()=>state.webGoal='branding_1to1'}
+      ]
+    },
+    q_tablet_courses:{
+      stepIndex:3,
+      title:'디지털 드로잉에서 무엇을 듣고 싶나요?',
+      options:[
+        {label:E, sub:'기초부터 시작', next:'q_result', set:()=>state.tabletCourse=E},
+        {label:F, sub:'중급/심화', next:'q_result', set:()=>state.tabletCourse=F},
+        {label:G, sub:'드로잉으로 책 만들기', next:'q_result', set:()=>state.tabletCourse=G},
+        {label:H, sub:'풍경 집중', next:'q_result', set:()=>state.tabletCourse=H},
+        {label:I, sub:'애니메이션 입문', next:'q_result', set:()=>state.tabletCourse=I},
+        {label:J, sub:'애니메이션 심화', next:'q_result', set:()=>state.tabletCourse=J},
+      ]
+    },
+    q_result:{
+      stepIndex:4,
+      title:'완료!',
+      options:[
+        {label:'확인',sub:'(결과 화면 유지)',next:'q_result', primary:true, set:()=>{}}
+      ]
+    }
+  };
+
+  let currentId='q_age';
+  const history=[];
+  const $ = (id)=>document.getElementById(id);
+
+  const qbox = $('qbox');
+  const roadmapWrap = $('roadmapWrap');
+  const roadCol = $('roadCol');
+  const hint = $('hint');
+  const progressEl = $('progress');
+  const qtitle = $('qtitle');
+  const qdesc = $('qdesc');
+  const optionsEl = $('options');
+  const backBtn = $('backBtn');
+
+  function resetPcOnly(){
+    state.interest=null;
+    state.videoTool=null;
+    state.codeGoal=null;
+    state.messageGoal=null;
+    state.webGoal=null;
+  }
+  function resetTabletOnly(){
+    state.tabletCourse=null;
+  }
+  function renderProgress(stepIndex){
+    progressEl.innerHTML='';
+    for(let i=0;i<steps.length;i++){
+      const d=document.createElement('div');
+      d.className='dot' + (i < stepIndex ? ' done' : (i===stepIndex ? ' on' : ''));
+      progressEl.appendChild(d);
+    }
+  }
+  function nextAfterExperience(){
+    return (state.device === 'tablet') ? 'q_tablet_courses' : 'q_pc_interest';
+  }
+  function renderQuestion(id){
+    currentId=id;
+    const q=flow[id];
+    renderProgress(q.stepIndex);
+
+    qtitle.textContent=q.title;
+    qdesc.textContent=q.desc || '';
+
+    optionsEl.innerHTML='';
+    q.options.forEach(opt=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.className='btn' + (opt.primary ? ' primary' : '');
+      b.innerHTML=`<div class="b1">${opt.label}</div><div class="b2">${opt.sub||''}</div>`;
+      b.addEventListener('click', ()=>{
+        history.push(id);
+        opt.set?.();
+        let next = opt.next;
+        if(id === 'q_exp' && next === '__AUTO__'){
+          next = nextAfterExperience();
+        }
+        if(next === 'q_result'){
+          showRoadmap();
+        }
+        renderQuestion(next);
+      });
+      optionsEl.appendChild(b);
+    });
+
+    backBtn.disabled = history.length===0;
+
+    if(id==='q_result'){
+      qbox.style.display='none';
+      roadmapWrap.style.display='flex';
+      showRoadmap();
+    } else {
+      qbox.style.display='block';
+      roadmapWrap.style.display='none';
+    }
+  }
+  function goBack(){
+    if(history.length===0) return;
+    const prev=history.pop();
+    renderQuestion(prev);
+  }
+  backBtn.addEventListener('click', goBack);
+
+  function showRoadmap(){
+    const { nodes, selectedLabel } = buildRoadmap();
+    roadCol.innerHTML='';
+    nodes.forEach((n, idx)=>{
+      const node=document.createElement('div');
+      node.className='node' + (idx===0 ? ' first' : '') + (n===selectedLabel ? ' selected' : '');
+      node.textContent=n;
+      roadCol.appendChild(node);
+      if(idx < nodes.length-1){
+        const down=document.createElement('div');
+        down.className='down';
+        down.textContent='↓';
+        roadCol.appendChild(down);
+      }
+    });
+    hint.textContent = buildHintText();
+  }
+
+  function buildHintText(){
+    const ageTxt = state.ageGroup==='u11' ? '11세 미만' : '성인';
+    const expTxt = state.experience==='none' ? '경험 없음' : '경험 있음';
+    const devTxt = state.device==='tablet' ? '패드' : 'PC';
+    return `${devTxt} · ${ageTxt} · ${expTxt}`;
+  }
+
+  function buildRoadmap(){
+    if(state.device==='tablet'){
+      return roadmapTablet();
+    }
+    return roadmapPC();
+  }
+
+  function roadmapTablet(){
+    const pick = state.tabletCourse || H;
+    let nodes = [E];
+    if(pick === E) return { nodes, selectedLabel: E };
+    nodes.push(F);
+    if(pick === F) return { nodes, selectedLabel: F };
+    if(pick === G) nodes.push(G);
+    else if(pick === H) nodes.push(H);
+    else if(pick === I) nodes.push(I);
+    else if(pick === J) { nodes.push(I); nodes.push(J); }
+    return { nodes: uniqueSeq(nodes), selectedLabel: pick };
+  }
+
+  function roadmapPC(){
+    const isAdult = state.ageGroup==='adult';
+    let selectedLabel = null;
+    switch(state.interest){
+      case 'book_design':
+        if(isAdult){
+          selectedLabel = C3;
+          return { nodes:[C1, C2, C3], selectedLabel };
+        } else {
+          selectedLabel = '아트북 디자인 Lv5';
+          return { nodes:['아트북 디자인 Lv1','아트북 디자인 Lv2','아트북 디자인 Lv3','아트북 디자인 Lv4','아트북 디자인 Lv5'], selectedLabel };
+        }
+      case 'character_ip':
+        selectedLabel = '이모티콘 디자인';
+        return { nodes:['굿즈 디자인','이모티콘 디자인'], selectedLabel };
+      case 'video_motion':
+        if(state.videoTool === 'aftereffects'){
+          selectedLabel = R;
+          return { nodes:[P, Q, R], selectedLabel };
+        }
+        selectedLabel = O;
+        return { nodes:[N, O], selectedLabel };
+      case 'code_design':
+        if(state.codeGoal === 'web'){
+          selectedLabel = J5;
+          return { nodes:[H1, H2, H3, J4, J5], selectedLabel };
+        }
+        selectedLabel = Z;
+        return { nodes:[X, Y, Z], selectedLabel };
+      case 'message_design':
+        if(state.messageGoal==='story') selectedLabel = '스토리 크래프팅';
+        else if(state.messageGoal==='essay') selectedLabel = '아트 에세이';
+        else if(state.messageGoal==='identity') selectedLabel = '아이덴티티 북';
+        else if(state.messageGoal==='publishing') selectedLabel = '퍼블리싱';
+        return { nodes:[selectedLabel || '아트 에세이'], selectedLabel: selectedLabel || '아트 에세이' };
+      case 'web_producer':
+        if(state.webGoal==='pro_master') selectedLabel = '웹 프로 마스터';
+        else if(state.webGoal==='profile') selectedLabel = '웹 프로필';
+        else if(state.webGoal==='marketing') selectedLabel = '마케팅 매니지먼트';
+        else if(state.webGoal==='branding_1to1') selectedLabel = '1:1 브랜딩 코스';
+        return { nodes:[selectedLabel || '웹 프로필'], selectedLabel: selectedLabel || '웹 프로필' };
+      default:
+        selectedLabel = '관심 분야 선택';
+        return { nodes:['관심 분야 선택'], selectedLabel };
+    }
+  }
+
+  function uniqueSeq(arr){
+    const out=[];
+    arr.forEach(x=>{ if(!out.includes(x)) out.push(x); });
+    return out;
+  }
+
+  renderQuestion('q_age');
+</script>
+</body>
+</html>
